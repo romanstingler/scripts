@@ -75,11 +75,8 @@ else
 fi
 
 echo 
-# Check if the NVIDIA driver is installed and print the installed version
-DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null)
-check_step "NVIDIA driver installed:" "nvidia-smi > /dev/null 2>&1" "Installed driver version: ${DRIVER_VERSION:-Not Installed}"
-
 # Check if the correct version of the NVIDIA driver is installed (example: 495+ required)
+DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null)
 MIN_REQUIRED_VERSION=495
 DRIVER_VERSION_NUMBER=$(echo $DRIVER_VERSION | cut -d. -f1)
 check_step "Correct NVIDIA driver version:" "[[ \"$DRIVER_VERSION_NUMBER\" -ge \"$MIN_REQUIRED_VERSION\" ]]" "Required version: $MIN_REQUIRED_VERSION+, Installed version: ${DRIVER_VERSION:-Not Installed}"

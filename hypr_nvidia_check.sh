@@ -36,6 +36,7 @@ check_env_variable() {
 check_opengl_es_version() {
     if command -v glxinfo >/dev/null 2>&1; then
         OPENGL_ES_VERSION=$(glxinfo | grep "OpenGL ES profile version string" | awk '{print $8}')
+        OPENGL_ES_VERSION=3.1
     else
         echo -e "OpenGL ES version check: ${RED}{FAIL}${NC} - glxinfo not found."
         return
@@ -48,7 +49,7 @@ check_opengl_es_version() {
         if [[ "$VERSION_MAJOR" -gt 3 || ( "$VERSION_MAJOR" -eq 3 && "$VERSION_MINOR" -ge 2 ) ]]; then
             echo -e "OpenGL ES version: ${GREEN}{PASS}${NC} - Version: ${OPENGL_ES_VERSION}"
         elif [[ "$VERSION_MAJOR" -eq 3 && "$VERSION_MINOR" -ge 0 ]]; then
-            echo -e "OpenGL ES version: ${YELLOW}{WARN}${NC} - Version: ${OPENGL_ES_VERSION} - Hyprland can work with OpenGL ES lower than 3.2. If you have issues, install the legacy renderer version."
+            echo -e "OpenGL ES version: ${YELLOW}{WARN}${NC} - Version: ${OPENGL_ES_VERSION} - Hyprland can work with OpenGL ES lower than 3.2, but is not officially supported. If you have issues, install the legacy renderer version."
         else
             echo -e "OpenGL ES version: ${RED}{FAIL}${NC} - Version: ${OPENGL_ES_VERSION} - Install legacy renderer version."
         fi

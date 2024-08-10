@@ -4,6 +4,7 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
 NC='\033[0m' # No Color
 
 # Define function to check and print results
@@ -45,8 +46,8 @@ check_opengl_es_version() {
     if [[ -n "$OPENGL_ES_VERSION" ]]; then
         VERSION_MAJOR=$(echo "$OPENGL_ES_VERSION" | cut -d'.' -f1)
         VERSION_MINOR=$(echo "$OPENGL_ES_VERSION" | cut -d'.' -f2)
-        
-        if [[ "$VERSION_MAJOR" -gt 3 || ( "$VERSION_MAJOR" -eq 3 && "$VERSION_MINOR" -ge 2 ) ]]; then
+
+        if [[ "$VERSION_MAJOR" -gt 3 || ("$VERSION_MAJOR" -eq 3 && "$VERSION_MINOR" -ge 2) ]]; then
             echo -e "OpenGL ES version: ${GREEN}{PASS}${NC} - Version: ${OPENGL_ES_VERSION}"
         elif [[ "$VERSION_MAJOR" -eq 3 && "$VERSION_MINOR" -ge 0 ]]; then
             echo -e "OpenGL ES version: ${YELLOW}{WARN}${NC} - Version: ${OPENGL_ES_VERSION} - Hyprland can work with OpenGL ES lower than 3.2, but is not officially supported. If you have issues, install the legacy renderer version."
@@ -67,7 +68,7 @@ else
 
     # Fetch the latest version from GitHub releases
     LATEST_HYPRLAND_VERSION=$(curl -s https://github.com/hyprwm/Hyprland/releases | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-    
+
     if [[ "$CURRENT_HYPRLAND_VERSION" == "$LATEST_HYPRLAND_VERSION" ]]; then
         echo -e "Latest Hyprland version: ${GREEN}{PASS}${NC} - Current version ($CURRENT_HYPRLAND_VERSION) is up-to-date."
     else
@@ -75,7 +76,7 @@ else
     fi
 fi
 
-echo 
+echo
 # Check if the correct version of the NVIDIA driver is installed (example: 495+ required)
 DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null)
 MIN_REQUIRED_VERSION=495
@@ -144,3 +145,26 @@ else
     echo -e "Compositor running on Wayland: ${RED}{FAIL}${NC} - Current session type: ${SESSION_TYPE}"
 fi
 
+# Function to check if 'no_hardware_cursors' is set to true in the cursor block
+CONFIG_FILE="$HOME/.config/hypr/hyprland.conf"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo -e "Hyprland config: ${RED}{FAIL}${NC} - Config file not found at $CONFIG_FILE"
+    return
+fi
+
+# Extract the cursor block
+CURSOR_BLOCK=$(awk '/cursor *{/,/}/' "$CONFIG_FILE")
+
+if [[ -z "$CURSOR_BLOCK" ]]; then
+    echo -e "Cursor block: ${BLUE}{INFO}${NC} - Cursor block not found in the config. Enable no_hardware_cursors if you have issues."
+    return
+fi
+
+# Check if 'no_hardware_cursors = true' is present and not commented out
+if echo "$CURSOR_BLOCK" | grep -q "^[^#]*no_hardware_cursors *= *true"; then
+    echo -e "Cursor config: ${GREEN}{PASS}${NC} - 'no_hardware_cursors = true' is set and active."
+elif echo "$CURSOR_BLOCK" | grep -q "# *no_hardware_cursors *= *true"; then
+    echo -e "Cursor config: ${BLUE}{INFO}${NC} - 'no_hardware_cursors = true' is set but commented out. Enable it if you have issues."
+else
+    echo -e "Cursor config: ${BLUE}{INFO}${NC} - 'no_hardware_cursors = true' is not set. It is recommended to enable it if you have issues."
+fi
